@@ -278,6 +278,8 @@ class MergeData:
         train_df = self.remove_duplicates(train_df)
         # Test deposit 채우기
         test_df['deposit'] = 0
+        train_df['_type'] = 'train'
+        test_df['_type'] = 'test'
         df = train_df.copy()
         df = pd.concat([df, test_df], axis=0)
 
