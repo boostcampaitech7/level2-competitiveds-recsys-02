@@ -5,7 +5,7 @@ from scipy.spatial import cKDTree
 from scipy.stats import skew, kurtosis
 from prophet import Prophet
 from pathlib import Path
-
+from typing import List
 # base data features
 # area_m2, contract_year_month, contract_day, floor, built_year, latitude, longitude, age, deposit, contract_type
 
@@ -36,6 +36,8 @@ from pathlib import Path
 # total_large_park_area_10km: 10km 반경 내 대형 공원 총 면적
 
 # nearest_subway_distance_km: 가장 가까운 지하철까지의 거리
+# nearest_subway_latitude: 가장 가까운 지하철의 위도
+# nearest_subway_longitude: 가장 가까운 지하철의 경도
 
 # school_count_within_1km: 1km 반경 내 학교 수
 # closest_elementary_distance: 가장 가까운 초등학교까지의 거리
@@ -56,13 +58,14 @@ class MergeData:
         subway_df (DataFrame): 지하철 데이터 프레임
         school_df (DataFrame): 학교 데이터 프레임
         interest_df (DataFrame): 이자율 데이터 프레임
-        merge_df (DataFrame): 통합된 데이터 프레임
-        
-    Methods:
+        merged_df (DataFrame): 통합된 데이터 프레임
+        lat_lon_df (DataFrame): 위도, 경도 데이터 프레임
+
+    Methods: 
         merge_all(): train_df와 test_df를 병합하고, 공원, 지하철, 학교, 이자율 특성을 생성하여 merge_df에 저장.
         save(path: str): merge_df를 csv 파일로 저장.
     """
-    def __init__(self, train_df: pd.DataFrame, test_df: pd.DataFrame, park_df: pd.DataFrame, subway_df: pd.DataFrame, school_df: pd.DataFrame, interest_df: pd.DataFrame):
+    def __init__(self, train_df: pd.DataFrame, test_df: pd.DataFrame, park_df: pd.DataFrame = None, subway_df: pd.DataFrame = None, school_df: pd.DataFrame = None, interest_df: pd.DataFrame = None):
         """
         Args:
             train_df (DataFrame): 아파트 학습 데이터.
@@ -78,26 +81,40 @@ class MergeData:
         self.subway_df = subway_df
         self.school_df = school_df
         self.interest_df = interest_df
-        self.interest_df.rename(columns={'year_month': 'contract_year_month'}, inplace=True)
-        self.merge_df = None
+        if self.interest_df is not None:
+            self.interest_df.rename(columns={'year_month': 'contract_year_month'}, inplace=True)
+        
+        # 이상치 제거
+        self.remove_outliers()
+        # 중복 제거
+        self.remove_duplicates()
+        
+        # Test deposit 채우기
+        self.test_df['deposit'] = 0
+        self.train_df['_type'] = 'train'
+        self.test_df['_type'] = 'test'
+        self.merged_df = self.train_df.copy()
+        self.merged_df = pd.concat([self.merged_df, self.test_df], axis=0)
+
+        # 위도 경도 unique df
+        self.lat_lon_df = self.merged_df[['latitude', 'longitude']].drop_duplicates()
+
     
     # 이상치 제거
-    def remove_outliers(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
-        print(df[df["index"] == 1588478])
-        
-        df = df.drop(df[df["index"] == 1588478].index)
-        
-        print("After removing outliers:", df.shape)
-        return df
+    def remove_outliers(self, remove_indexs: List = [1588478]) -> None:
+        print("Before removing outliers:", self.train_df.shape)
+        print("Removing outliers:", remove_indexs)
+        self.train_df = self.train_df[~self.train_df.index.isin(remove_indexs)]
+        print("After removing outliers:", self.train_df.shape)
     
     # Train 중복 데이터 제거
-    def remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
+    def remove_duplicates(self) -> None:
         # index drop
-        df = df.drop('index', axis=1)
-        print('Before duplicates removal:', df.shape)
-        df = df.drop_duplicates()
-        print('After duplicates removal:', df.shape)
-        return df
+        self.train_df = self.train_df.drop('index', axis=1)
+        print('Before duplicates removal:', self.train_df.shape)
+        self.train_df = self.train_df.drop_duplicates()
+        print('After duplicates removal:', self.train_df.shape)
+    
 
     # Haversine 공식 함수 정의 (두 지점 간의 거리 계산)
     def haversine(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -112,31 +129,42 @@ class MergeData:
         return R * c  # 결과를 km 단위로 반환
 
     # 날짜 feature 생성    
-    def create_year_month_features(self, df: pd.DataFrame) -> pd.DataFrame:
+    def create_year_month_features(self) -> pd.DataFrame:
         # contract_date 를 contract_year_month feature와 contract_day feature 합쳐서 datetime으로 변환
-        df['contract_date'] = pd.to_datetime(df['contract_year_month'].astype(str) + df['contract_day'].astype(str), format='%Y%m%d')
+        self.merged_df['contract_date'] = pd.to_datetime(self.merged_df['contract_year_month'].astype(str) + self.merged_df['contract_day'].astype(str), format='%Y%m%d')
         # contract_date에서 year, month, day 생성
-        df['contract_year'] = df['contract_date'].dt.year
-        df['contract_month'] = df['contract_date'].dt.month
-        df['contract_day'] = df['contract_date'].dt.day
+        self.merged_df['contract_year'] = self.merged_df['contract_date'].dt.year
+        self.merged_df['contract_month'] = self.merged_df['contract_date'].dt.month
+        self.merged_df['contract_day'] = self.merged_df['contract_date'].dt.day
         
-        print("Year-month features created. Feature_names:", ['contract_date', 'contract_year', 'contract_month', 'contract_day'])
+        print("Year-month features created.", ['contract_date', 'contract_year', 'contract_month', 'contract_day'])
         
-        return df
+        return self.merged_df
 
     # 거래량 feature 생성
-    def create_transaction_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        # df를 날짜로 sorting하고
-        df = df.sort_values(by='contract_date')
-        df['transaction_count'] = df.groupby(['latitude', 'longitude'])['contract_date'].cumcount()
-
-        print("Transaction features created. Feature_names:", ['transaction_count'])
+    def create_transaction_features(self) -> pd.DataFrame:
+        # create_year_month_features 실행 안했으면 먼저 하라고 말해주기
+        if 'contract_date' not in self.merged_df.columns:
+            print("Run create_year_month_features() first.")
+            return self.merged_df
         
-        return df
+        # df를 날짜로 sorting하고
+        self.merged_df = self.merged_df.sort_values(by='contract_date')
+        self.merged_df['transaction_count'] = self.merged_df.groupby(['latitude', 'longitude'])['contract_date'].cumcount()
+
+        print("Transaction features created.", ['transaction_count'])
+        
+        return self.merged_df
         
     
     # 공원
-    def create_park_features(self, lat_lon_df: pd.DataFrame) -> pd.DataFrame:
+    def create_park_features(self) -> pd.DataFrame:
+        if self.park_df is None:
+            print("Park data is not provided. Park features are not created.")
+            return self.merged_df
+        
+        lat_lon_df = self.lat_lon_df.copy()
+        
         def nearest_park_distance(apartment_coords, park_tree):
             distances, _ = park_tree.query(np.deg2rad(apartment_coords), k=1)
             return distances.ravel() * 6371
@@ -181,12 +209,22 @@ class MergeData:
         features['avg_distance_5_parks'] = avg_dist
         features['park_distance_skewness'] = skewness
         features['park_distance_kurtosis'] = kurtosis_val
+        lat_lon_df = pd.concat([lat_lon_df, features], axis=1)
         
-        print("Park features created. Feature_names:", features.columns)
-        return pd.concat([lat_lon_df, features], axis=1)
+        print("Park features created.", features.columns.tolist())
+        
+        self.merged_df = pd.merge(self.merged_df, lat_lon_df, on=['latitude', 'longitude'], how='left')
+    
+        return self.merged_df
 
     # 대형 공원
-    def create_large_park_features(self, lat_lon_df: pd.DataFrame, size_threshold=100000) -> pd.DataFrame:
+    def create_large_park_features(self, size_threshold=100000) -> pd.DataFrame:
+        if self.park_df is None:
+            print("Park data is not provided. Large park features are not created.")
+            return self.merged_df
+        
+        lat_lon_df = self.lat_lon_df.copy()
+        
         # 대형 공원만 필터링
         large_parks = self.park_df[self.park_df['area'] >= size_threshold].reset_index(drop=True)
         
@@ -213,13 +251,21 @@ class MergeData:
         indices = large_park_tree.query_radius(np.deg2rad(apartment_coords), r=10/6371)
         total_areas = [large_parks.loc[idx, 'area'].sum() if len(idx) > 0 else 0 for idx in indices]
         features['total_large_park_area_10km'] = total_areas
+        lat_lon_df = pd.concat([lat_lon_df, features], axis=1)
+        print("Large park features created.", features.columns.tolist())
         
-        print("Large park features created. Feature_names:", features.columns)
+        self.merged_df = pd.merge(self.merged_df, lat_lon_df, on=['latitude', 'longitude'], how='left')
         
-        return pd.concat([lat_lon_df, features], axis=1)
+        return self.merged_df
 
     # 지하철
-    def create_subway_distance_features(self, lat_lon_df: pd.DataFrame) -> pd.DataFrame:
+    def create_subway_distance_features(self) -> pd.DataFrame:
+        if self.subway_df is None:
+            print("Subway data is not provided. Subway features are not created.")
+            return self.merged_df
+        
+        lat_lon_df = self.lat_lon_df.copy()
+        
         # KD-Tree를 사용해 가장 가까운 지하철을 찾는 함수
         def find_nearest_subway(lat, lon, subway_tree, subway_coordinates):
             # 주어진 좌표에 대해 가장 가까운 지하철 역 인덱스 찾기
@@ -231,20 +277,28 @@ class MergeData:
             # Haversine 공식을 사용하여 거리 계산
             dist_km = self.haversine(lat, lon, nearest_subway[0], nearest_subway[1])
             
-            return dist_km
+            return dist_km, nearest_subway[0], nearest_subway[1]
 
         # subway 데이터의 좌표를 KD-Tree로 변환
         subway_coordinates = self.subway_df[['latitude', 'longitude']].values
         subway_tree = cKDTree(subway_coordinates)
 
-        lat_lon_df['nearest_subway_distance_km'] = lat_lon_df.apply(lambda row: find_nearest_subway(row['latitude'], row['longitude'], subway_tree, subway_coordinates), axis=1)
+        lat_lon_df['nearest_subway_distance_km'], lat_lon_df['nearest_subway_latitude'], lat_lon_df['nearest_subway_longitude'] = zip(*lat_lon_df.apply(lambda x: find_nearest_subway(x['latitude'], x['longitude'], subway_tree, subway_coordinates), axis=1))
+
+        print("Subway distance features created.", ['nearest_subway_distance_km', 'nearest_subway_latitude', 'nearest_subway_longitude'])
         
-        print("Subway distance features created. Feature_names:", ['nearest_subway_distance_km'])
+        self.merged_df = pd.merge(self.merged_df, lat_lon_df, on=['latitude', 'longitude'], how='left')
         
-        return lat_lon_df
+        return self.merged_df
 
     # 학교
-    def create_school_distances_features(self, lat_lon_df: pd.DataFrame) -> pd.DataFrame:
+    def create_school_distances_features(self) -> pd.DataFrame:
+        if self.school_df is None:
+            print("School data is not provided. School features are not created.")
+            return self.merged_df
+        
+        lat_lon_df = self.lat_lon_df.copy()
+        
         school_locations = self.school_df[['latitude', 'longitude']].values
         school_levels = self.school_df['schoolLevel'].values
 
@@ -285,17 +339,19 @@ class MergeData:
         lat_lon_df['closest_middle_distance'] = closest_schools['middle']
         lat_lon_df['closest_high_distance'] = closest_schools['high']
 
-        print("School distance features created. Feature_names:", lat_lon_df.columns[-4:])
+        print("School distance features created.", lat_lon_df.columns[-4:].tolist())
 
-        return lat_lon_df
+        self.merged_df = pd.merge(self.merged_df, lat_lon_df, on=['latitude', 'longitude'], how='left')
+        
+        return self.merged_df
 
     # 전세가 월별 평균
-    def get_deposit_mean(self, train_df: pd.DataFrame) -> pd.DataFrame:
+    def create_deposit_mean_interest_features(self) -> pd.DataFrame:
         # Train_df에서 contract_year_month가 같은 row들의 deposit 평균을 column으로 추가
-        train_df['deposit_mean'] = train_df.groupby('contract_year_month')['deposit'].transform('mean')
+        self.train_df['deposit_mean'] = self.train_df.groupby('contract_year_month')['deposit'].transform('mean')
 
         # deposit_mean을 interest_rate_df에 추가 하나씩만
-        interest_rate_df = pd.merge(self.interest_df, train_df[['contract_year_month', 'deposit_mean']], on='contract_year_month', how='left')
+        interest_rate_df = pd.merge(self.interest_df, self.train_df[['contract_year_month', 'deposit_mean']], on='contract_year_month', how='left')
         # unique한 contract_year_month만 남기기
         interest_rate_df.drop_duplicates(subset='contract_year_month', keep='first', inplace=True)
         # index 초기화
@@ -348,49 +404,32 @@ class MergeData:
         interest_rate_df.loc[interest_rate_df['contract_year_month'] >= '2024-01-01', 'deposit_mean'] = interest_rate_df.loc[interest_rate_df['contract_year_month'] >= '2024-01-01', 'trend'].values
         interest_rate_df['contract_year_month'] = interest_rate_df['contract_year_month'].dt.strftime('%Y%m').astype(int)
         interest_rate_df = interest_rate_df[['contract_year_month', 'deposit_mean', 'interest_rate', 'interest_rate_diff']]
-        print("Interest rate features created. Feature_names:", ['deposit_mean', 'interest_rate', 'interest_rate_diff'])
+        print("Interest rate features created.", ['deposit_mean', 'interest_rate', 'interest_rate_diff'])
         
-        return interest_rate_df
+        self.merged_df = pd.merge(self.merged_df, interest_rate_df, on='contract_year_month', how='left')
+        
+        return self.merged_df
 
     def merge_all(self) -> pd.DataFrame:
-        # 이상치 제거
-        self.train_df = self.remove_outliers(self.train_df, 'deposit')
-
-        # 중복 제거
-        self.train_df = self.remove_duplicates(self.train_df)
-        # Test deposit 채우기
-        self.test_df['deposit'] = 0
-        self.train_df['_type'] = 'train'
-        self.test_df['_type'] = 'test'
-        df = self.train_df.copy()
-        df = pd.concat([df, self.test_df], axis=0)
-
-        # 날짜 feature 생성
-        df = self.create_year_month_features(df)
-        
-        # 거래량 feature 생성
-        df = self.create_transaction_features(df)
         
         # 위치 feature 생성
-        lat_lon_df = df[['latitude', 'longitude']].drop_duplicates()
-        lat_lon_df = self.create_park_features(lat_lon_df)
-        lat_lon_df = self.create_large_park_features(lat_lon_df)
-        lat_lon_df = self.create_subway_distance_features(lat_lon_df)
-        lat_lon_df = self.create_school_distances_features(lat_lon_df)
-        df = df.merge(lat_lon_df, on=['latitude', 'longitude'], how='left')
-
+        self.create_park_features()
+        self.create_large_park_features()
+        self.create_subway_distance_features()
+        self.create_school_distances_features()
+        
         # interest_rate feature 생성
-        interest_rate_df = self.get_deposit_mean(self.train_df)
-        df = df.merge(interest_rate_df, on='contract_year_month', how='left')
+        self.create_deposit_mean_interest_features()
         
-        df.drop(columns=['index'], inplace=True)
+        try:
+            self.merged_df.drop(columns=['index'], inplace=True)
+        except:
+            pass
         
-        self.merge_df = df
+        print("All features merged. shape:", self.merged_df.shape)
         
-        print("All features merged.")
-        
-        return df
+        return self.merged_df
     
     def save(self, path: str):
-        self.merge_df.to_csv(path, index=False)
+        self.merged_df.to_csv(path, index=False)
         print(f"Data saved to {path}")
