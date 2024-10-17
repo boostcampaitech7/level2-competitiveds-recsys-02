@@ -9,6 +9,13 @@ def data_loader(dataset_name: str) -> pd.DataFrame:
         target_column = "deposit"
         train_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "train.csv"))
         test_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "test.csv"))
+    elif dataset_name == "data_v1017":
+        drop_columns = ["_type"]
+        target_column = "deposit"
+        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "merged_data.csv"))
+        train_df = dataset_df.loc[dataset_df["_type"]=="train"]
+        test_df = dataset_df.loc[dataset_df["_type"]=="test"]
+        test_df = test_df.drop(columns=[target_column])
     
     submission_df = pd.read_csv(os.path.join(data_path, "sample_submission.csv"))
     
