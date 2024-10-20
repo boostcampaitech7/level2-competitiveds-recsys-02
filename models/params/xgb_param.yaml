@@ -1,4 +1,5 @@
 reg_params:
+  device: "cuda"
   booster: "gbtree"
   objective: "reg:squarederror"
   learning_rate: 0.05
@@ -18,6 +19,7 @@ reg_params:
   verbosity: 1
 
 cls_params:
+  device: "cuda"
   objective: "multi:softprob"
   num_class: 4
   max_depth: 6

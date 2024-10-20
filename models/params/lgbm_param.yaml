@@ -1,7 +1,13 @@
 reg_params:
+  device: "gpu"
+  gpu_platform_id: 0
+  gpu_device_id: 0
   random_state: 42
 
 cls_params:
+  device: "gpu"
+  gpu_platform_id: 0
+  gpu_device_id: 0
   boosting_type: gbdt
   objective: multiclass
   metric: multi_logloss
