@@ -1,0 +1,19 @@
+reg_params:
+  device: "gpu"
+  gpu_platform_id: 0
+  gpu_device_id: 0
+  random_state: 42
+
+cls_params:
+  device: "gpu"
+  gpu_platform_id: 0
+  gpu_device_id: 0
+  boosting_type: gbdt
+  objective: multiclass
+  metric: multi_logloss
+  num_class: 4
+  num_leaves: 97
+  learning_rate: 0.015732043600075817
+  n_estimators: 52
+  random_state: 42
+  verbose: 0
