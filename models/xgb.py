@@ -1,7 +1,7 @@
-from lightgbm import LGBMClassifier
-from lightgbm import LGBMRegressor
+from xgboost import XGBClassifier
+from xgboost import XGBRegressor
 
-class LGBM:
+class XGB:
     def __init__(self, model_type, params):
         self.model = None
         self.model_type = model_type
@@ -9,9 +9,9 @@ class LGBM:
         
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
         if self.model_type == "classifier":
-            model = LGBMClassifier(**self.params)
+            model = XGBClassifier(**self.params)
         elif self.model_type == "regressor":
-            model = LGBMRegressor(**self.params)
+            model = XGBRegressor(**self.params)
         if x_valid is None or y_valid is None:
             model.fit(x_train, y_train)
         else:

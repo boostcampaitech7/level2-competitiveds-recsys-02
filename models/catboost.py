@@ -1,33 +1,42 @@
-from lightgbm import LGBMClassifier
-from lightgbm import LGBMRegressor
+from catboost import CatBoostClassifier
+from catboost import CatBoostRegressor
+from catboost import Pool
 
-class LGBM:
+class Catboost:
     def __init__(self, model_type, params):
         self.model = None
         self.model_type = model_type
         self.params = params
         
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
+        train_pool = Pool(data=x_train, label=y_train)
+        valid_pool = None
+        if x_valid is not None and y_valid is not None:
+            valid_pool = Pool(data=x_valid, label=y_valid)
+
         if self.model_type == "classifier":
-            model = LGBMClassifier(**self.params)
+            model = CatBoostClassifier(**self.params)
         elif self.model_type == "regressor":
-            model = LGBMRegressor(**self.params)
-        if x_valid is None or y_valid is None:
-            model.fit(x_train, y_train)
+            model = CatBoostRegressor(**self.params)
+
+        if valid_pool is None:
+            model.fit(train_pool)
         else:
-            model.fit(x_train, y_train, eval_set=[(x_valid, y_valid)])
+            model.fit(train_pool, eval_set=valid_pool)
         self.model = model
     
     def predict_proba(self, x_valid):
         if self.model is None:
             raise ValueError("Train first")
-        y_valid_pred = self.model.predict_proba(x_valid)
+        valid_pool = Pool(data=x_valid)
+        y_valid_pred = self.model.predict_proba(valid_pool)
         return y_valid_pred
     
     def predict(self, x_valid):
         if self.model is None:
             raise ValueError("Train first")
-        pred = self.model.predict(x_valid)
+        valid_pool = Pool(data=x_valid)
+        pred = self.model.predict(valid_pool)
         return pred
     
     def feature_importance(self):
