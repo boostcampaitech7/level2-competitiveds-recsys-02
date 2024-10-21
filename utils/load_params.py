@@ -2,7 +2,7 @@ import yaml
 import os
 
 def load_params(model_name, model_type):
-    possible_model = ["LGBM", "XGB", "Catboost"]
+    possible_model = ["LGBM", "XGB", "Catboost", "RF"]
     possible_type = ["classifier", "regressor"]
     params_path = "models/params"
     
@@ -15,6 +15,8 @@ def load_params(model_name, model_type):
             yaml_load =  yaml.load(open(os.path.join(params_path, "xgb_param.yaml")), Loader=yaml.FullLoader)
         elif model_name == "Catboost":
             yaml_load =  yaml.load(open(os.path.join(params_path, "catboost_param.yaml")), Loader=yaml.FullLoader)
+        elif model_name == "RF":
+            yaml_load =  yaml.load(open(os.path.join(params_path, "rf_param.yaml")), Loader=yaml.FullLoader)
         # elif: 다음 모델
         
         if model_type == "classifier":
