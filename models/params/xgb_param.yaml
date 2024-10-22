@@ -2,12 +2,12 @@ reg_params:
   device: "cuda"
   booster: "gbtree"
   objective: "reg:squarederror"
-  learning_rate: 0.05
-  max_depth: 6
+  learning_rate: 0.15161899093869716
+  max_depth: 8
   min_child_weight: 1
   gamma: 0
   subsample: 1
-  colsample_bytree: 1
+  colsample_bytree: 0.45526618254159534
   colsample_bylevel: 1
   colsample_bynode: 1
   reg_alpha: 0
@@ -15,16 +15,16 @@ reg_params:
   scale_pos_weight: 1
   base_score: 0.5
   random_state: 0
-  n_estimators: 100
+  n_estimators: 419
   verbosity: 1
 
 cls_params:
   device: "cuda"
   objective: "multi:softprob"
   num_class: 4
-  max_depth: 6
-  learning_rate: 0.02
-  n_estimators: 100
+  max_depth: 8
+  learning_rate: 0.15161899093869716
+  n_estimators: 419
   random_state: 42
   verbosity: 0
 
