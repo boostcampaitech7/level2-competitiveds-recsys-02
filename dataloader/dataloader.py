@@ -12,7 +12,21 @@ def data_loader(dataset_name: str) -> pd.DataFrame:
     elif dataset_name == "data_v1017":
         drop_columns = ["_type"]
         target_column = "deposit"
-        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "merged_data.csv"))
+        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "merged_data_v1017.csv"))
+        train_df = dataset_df.loc[dataset_df["_type"]=="train"]
+        test_df = dataset_df.loc[dataset_df["_type"]=="test"]
+        test_df = test_df.drop(columns=[target_column])
+    elif dataset_name == "data_v1021":
+        drop_columns = ["_type", "deposit"]
+        target_column = "deposit_by_area"
+        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "merged_data_v1021.csv"))
+        train_df = dataset_df.loc[dataset_df["_type"]=="train"]
+        test_df = dataset_df.loc[dataset_df["_type"]=="test"]
+        test_df = test_df.drop(columns=[target_column])
+    elif dataset_name == "final_df":
+        drop_columns = ["_type", "deposit"]
+        target_column = "deposit_by_area"
+        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "final_df.csv"))
         train_df = dataset_df.loc[dataset_df["_type"]=="train"]
         test_df = dataset_df.loc[dataset_df["_type"]=="test"]
         test_df = test_df.drop(columns=[target_column])
