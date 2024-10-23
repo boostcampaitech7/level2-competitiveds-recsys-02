@@ -275,7 +275,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, n
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             counter = 0
-            torch.save(model.state_dict(), f'./model/FT_transformer.pth')
+            torch.save(model.state_dict(), f'./checkpoint/FT_transformer.pth')
         else:
             counter += 1
             if counter >= patience:
