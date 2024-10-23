@@ -12,13 +12,13 @@ cls_params:
   task_type: GPU
   verbose: 100
 reg_params:
-  bagging_temperature: 0.0
+  bagging_temperature: 0.1720150713038577
   border_count: 254
-  depth: 10
+  depth: 9
   devices: '0'
-  iterations: 374
-  l2_leaf_reg: 5.825579340588563
-  learning_rate: 0.3
+  iterations: 381
+  l2_leaf_reg: 7.430030644141291
+  learning_rate: 0.19008068762837887
   loss_function: RMSE
   model_size_reg: 0.5
   od_type: Iter

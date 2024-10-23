@@ -12,9 +12,9 @@ cls_params:
   random_state: 42
   verbose: 0
 reg_params:
-  colsample_bytree: 0.6546472576714326
+  colsample_bytree: 0.8244552498051052
   device: cpu
-  learning_rate: 0.1466152700102118
-  n_estimators: 134
-  num_leaves: 35
+  learning_rate: 0.18363417759278208
+  n_estimators: 379
+  num_leaves: 79
   random_state: 42
