@@ -6,6 +6,11 @@ from scipy.stats import skew, kurtosis
 from prophet import Prophet
 from pathlib import Path
 from typing import List
+from sklearn.preprocessing import StandardScaler
+from utils.clustering import ClusteringMethods
+from haversine import haversine, Unit
+from tqdm import tqdm
+
 # base data features
 # area_m2, contract_year_month, contract_day, floor, built_year, latitude, longitude, age, deposit, contract_type
 
@@ -87,7 +92,7 @@ class MergeData:
         # 이상치 제거
         self.remove_outliers()
         # 중복 제거
-        self.remove_duplicates()
+        # self.remove_duplicates()
         
         # Test deposit 채우기
         self.test_df['deposit'] = 0
@@ -107,7 +112,7 @@ class MergeData:
         self.train_df = self.train_df[~self.train_df.index.isin(remove_indexs)]
         print("After removing outliers:", self.train_df.shape)
     
-    # Train 중복 데이터 제거
+    # Train 중복 데이터 제거 -> 사용 안함
     def remove_duplicates(self) -> None:
         # index drop
         self.train_df = self.train_df.drop('index', axis=1)
@@ -127,6 +132,12 @@ class MergeData:
         c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
 
         return R * c  # 결과를 km 단위로 반환
+
+    # deposit by area feature 생성
+    def create_deposit_by_area_feature(self) -> pd.DataFrame:
+        self.merged_df['deposit_by_area'] = self.merged_df['deposit'] / self.merged_df['area_m2']
+        print("Deposit by area feature created.", ['deposit_by_area'])
+        return self.merged_df
 
     # 날짜 feature 생성    
     def create_year_month_features(self) -> pd.DataFrame:
@@ -409,8 +420,175 @@ class MergeData:
         self.merged_df = pd.merge(self.merged_df, interest_rate_df, on='contract_year_month', how='left')
         
         return self.merged_df
+    
+    # 클러스터링 변수 생성
+    def create_cluster_features(self) -> pd.DataFrame:
+        apartment = self.merged_df[self.merged_df['contract_year_month'] < 202401][['latitude', 'longitude', 'nearest_subway_distance_km', 'deposit_by_area', 'area_m2', 'built_year', 'school_count_within_1km']]
+
+        apartment_avg_deposit = apartment.groupby(['latitude', 'longitude']).agg({
+            'deposit_by_area': 'mean',
+            'nearest_subway_distance_km': 'first',
+            'area_m2' : 'mean',
+            'built_year': 'first',
+            'school_count_within_1km' : 'first'
+        }).reset_index()
+
+        print(f"Number of apartments: {len(apartment_avg_deposit)}")
+        
+        scaler = StandardScaler()
+        apartment_scaled = scaler.fit_transform(apartment_avg_deposit)
+        apartment_scaled_df = pd.DataFrame(apartment_scaled, columns=['latitude', 'longitude', 'deposit_by_area', 'nearest_subway_distance_km', 'area_m2', 'built_year','school_count_within_1km'])
+
+        clustering = ClusteringMethods()
+
+        ## DBCAN
+        df_cluster = clustering.apply_dbscan(apartment_scaled_df,min_samples=150)
+        df_cluster.head(3)
+
+        # K-means ++
+        X = np.array(apartment_scaled_df.drop(['latitude', 'longitude'],axis = 1))
+
+        k = 5  # 클러스터 개수 설정
+        labels, centroids = clustering.k_means_plus(X, k)
+        
+        apartment_cluster = apartment_avg_deposit.copy()
+        apartment_cluster['Is_Outside'] = df_cluster['cluster_0']
+        apartment_cluster['Is_Outside'] = apartment_cluster['Is_Outside'].replace(-1, 0)
+
+        apartment_cluster['cluster_kmeans'] = labels
+        
+        self.merged_df = pd.merge(self.merged_df, apartment_cluster[['latitude', 'longitude', 'Is_Outside', 'cluster_kmeans']], on=['latitude', 'longitude'], how='left')
+        
+        non_null_clusters = self.merged_df[self.merged_df['cluster_kmeans'].notnull()]
+        null_clusters = self.merged_df[self.merged_df['cluster_kmeans'].isnull()]
+
+        non_null_coords = non_null_clusters[['latitude', 'longitude']].values
+        null_coords = null_clusters[['latitude', 'longitude']].values
+
+        # cKDTree를 사용하여 가장 가까운 이웃 찾기
+        tree = cKDTree(non_null_coords)
+
+        # 가장 가까운 이웃의 인덱스를 찾음
+        _, idx = tree.query(null_coords)
+
+        # 가장 가까운 비결측값 행의 cluster_kmeans 값으로 대체
+        self.merged_df.loc[self.merged_df['cluster_kmeans'].isnull(), 'cluster_kmeans'] = non_null_clusters.iloc[idx]['cluster_kmeans'].values
+        self.merged_df.loc[self.merged_df['Is_Outside'].isnull(), 'Is_Outside'] = non_null_clusters.iloc[idx]['Is_Outside'].values
+
+        print("Cluster features created.", ['Is_Outside', 'cluster_kmeans'])
+        return self.merged_df
+
+    # 주기성 feature 생성
+    def create_seasonal_features(self) -> pd.DataFrame:
+        # 월 추출 
+        self.merged_df['month'] = self.merged_df['contract_year_month'].astype(str).str[4:6].astype(int)
+
+        # 월을 기준으로 1년 주기성 변환
+        self.merged_df['month_sin'] = np.sin(2 * np.pi * self.merged_df['month'] / 12)
+        self.merged_df['month_cos'] = np.cos(2 * np.pi * self.merged_df['month'] / 12)
+
+        self.merged_df = self.merged_df.drop('month',axis = 1)
+        
+        return self.merged_df
+    
+    # 강남역까지 거리 feature 생성
+    def create_gangnam_distance_features(self) -> pd.DataFrame:
+        gangnam_lat = 37.498132408887
+        gangnam_lon = 127.02839523744
+
+
+        self.merged_df['distance_from_gangnam'] = self.merged_df.apply(
+            lambda row: self.haversine(row['latitude'], row['longitude'], gangnam_lat, gangnam_lon), axis=1)
+
+    # 인근 지하철역 개수 feature 생성
+    def create_subway_count_features(self) -> pd.DataFrame:
+        """
+        모든 아파트에 대해 연산하면 시간이 오래 걸리므로 위도 경도에 대해서 계산을 수행한 후 Merge한다.
+        아파트의 위치 정보를 추출한다. 이후 중복된 위치 정보를 제거한다.
+        """
+
+        # 고유한 위치 정보 추출
+        unique_locations = self.merged_df[['latitude', 'longitude']].drop_duplicates().reset_index(drop=True)
+        
+        distances = []
+        
+        # 아파트로부터 지하철까지의 거리 계산
+        for idx, location in tqdm(unique_locations.iterrows(), total=unique_locations.shape[0], desc="Calculating distances"):
+            apartment_location = (location['latitude'], location['longitude'])
+            
+            # 하나의 아파트로부터 모든 지하철역까지의 거리 계산
+            for _, subway in self.subway_df.iterrows():
+                subway_location = (subway['latitude'], subway['longitude'])
+                distance = haversine(apartment_location, subway_location, unit=Unit.METERS)
+                distances.append((location['latitude'], location['longitude'], distance))
+        
+        # 거리 데이터프레임 생성
+        distance_df = pd.DataFrame(distances, columns=['latitude', 'longitude', 'distance'])
+        
+        # 500m, 1000m, 2000m 안의 거리 계산
+        counts = distance_df.groupby(['latitude', 'longitude']).agg(
+            subways_within_500m=('distance', lambda x: (x <= 500).sum()),
+            subways_within_1km=('distance', lambda x: (x <= 1000).sum()),
+            subways_within_2km=('distance', lambda x: (x <= 2000).sum())
+        ).reset_index()
+        
+        self.merged_df = pd.merge(self.merged_df, counts, on=['latitude', 'longitude'], how='left')
+        
+        return self.merged_df
+
+    
+    # target mean encoding feature 생성
+    def create_target_mean_encoding_features(self) -> pd.DataFrame:
+        train_data = self.merged_df[self.merged_df['_type'] == 'train']
+        test_data = self.merged_df[self.merged_df['_type'] == 'test']
+        deposit_mean = train_data.groupby(['latitude', 'longitude'])['deposit_by_area'].mean().reset_index().rename(columns = {'deposit_by_area' : 'apt_deposit_mean'})
+        train_data = train_data.merge(deposit_mean, how = 'left')
+        test_data = test_data.merge(deposit_mean, how = 'left')
+        # train에 이미 존재하는 아파트
+        test_already_exist = test_data[~test_data.apt_deposit_mean.isna()]
+        
+        # 기존 아파트
+        existing_apt_data = train_data[['latitude', 'longitude', 'deposit_by_area']]
+        existing_apt_loc = existing_apt_data[['latitude', 'longitude']].drop_duplicates().reset_index(drop=True)
+
+        # 새로운 아파트
+        new_apt_data = test_data[test_data.apt_deposit_mean.isna()]
+        new_apt_loc = new_apt_data[['latitude', 'longitude']].drop_duplicates().reset_index(drop=True)
+
+        # 각 새 아파트에 대해 가장 가까운 k개의 기존 아파트 전세가 평균 계산
+        tree = cKDTree(existing_apt_loc.values)
+        _, indices = tree.query(new_apt_loc.values, k=5)
+
+        estimated_deposits = {}
+        for i, (new_lat, new_lon) in enumerate(new_apt_loc.values):
+            nearest_apts_indices = indices[i]
+            nearest_apts = existing_apt_loc.iloc[nearest_apts_indices]
+            nearest_apts_data = nearest_apts.merge(existing_apt_data, how = 'left')
+            
+            avg_deposit = nearest_apts_data['deposit_by_area'].mean()
+            estimated_deposits[(new_lat, new_lon)] = avg_deposit
+            
+        new_apt_data['apt_deposit_mean'] = new_apt_data.apply(
+            lambda row: estimated_deposits.get((row['latitude'], row['longitude'])), axis=1
+        )
+        
+    
+        test_data = pd.concat([test_already_exist, new_apt_data]).sort_index()
+        
+        # 지난 아파트 거래가 변수
+        train_data = train_data.sort_values(['contract_year_month', 'contract_day'])
+        train_data['last_deposit_by_area'] = train_data.groupby(['latitude', 'longitude'])['deposit_by_area'].shift(1)
+
+        last_apt_deposit = train_data.groupby(['latitude', 'longitude']).last().reset_index()[['latitude', 'longitude', 'deposit_by_area']].rename(columns = {'deposit_by_area' : 'last_deposit_by_area'})
+        test_data = test_data.merge(last_apt_deposit, how= 'left')
+        
+        self.merged_df = pd.concat([train_data, test_data]).sort_index()
+        
+        return self.merged_df
 
     def merge_all(self) -> pd.DataFrame:
+        # deposit by area feature 생성
+        self.create_deposit_by_area_feature()
         
         # 위치 feature 생성
         self.create_park_features()
@@ -420,6 +598,21 @@ class MergeData:
         
         # interest_rate feature 생성
         self.create_deposit_mean_interest_features()
+        
+        # 클러스터링 feature 생성
+        self.create_cluster_features()
+        
+        # 주기성 feature 생성
+        self.create_seasonal_features()
+        
+        # 강남역까지 거리 feature 생성
+        self.create_gangnam_distance_features()
+        
+        # 인근 지하철역 개수 feature 생성
+        self.create_subway_count_features()
+        
+        # target mean encoding feature 생성
+        self.create_target_mean_encoding_features()
         
         try:
             self.merged_df.drop(columns=['index'], inplace=True)
