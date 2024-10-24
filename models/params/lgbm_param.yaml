@@ -7,14 +7,14 @@ cls_params:
   metric: multi_logloss
   n_estimators: 52
   num_class: 4
-  num_leaves: 97
+  num_leaves: 126
   objective: multiclass
   random_state: 42
   verbose: 0
 reg_params:
-  colsample_bytree: 0.8244552498051052
+  colsample_bytree: 0.8690215583827708
   device: cpu
-  learning_rate: 0.18363417759278208
-  n_estimators: 379
-  num_leaves: 79
+  learning_rate: 0.020479562055984522
+  n_estimators: 932
+  num_leaves: 126
   random_state: 42
