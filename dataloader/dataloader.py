@@ -48,6 +48,14 @@ def data_loader(dataset_name: str) -> pd.DataFrame:
         train_df = dataset_df.loc[dataset_df["_type"]=="train"]
         test_df = dataset_df.loc[dataset_df["_type"]=="test"]
         test_df = test_df.drop(columns=[target_column])
+    elif dataset_name == "real_final_df":
+        drop_columns = ["_type", "deposit_by_area", "subways_within_1km", "park_count_500m", "subways_within_500m", "Is_Outside", "park_distance_kurtosis", "park_distance_skewness"]
+        target_column = "deposit"
+        dataset_df: pd.DataFrame = pd.read_csv(os.path.join(data_path, "final_df.csv"))
+        train_df = dataset_df.loc[dataset_df["_type"]=="train"]
+        test_df = dataset_df.loc[dataset_df["_type"]=="test"]
+        test_df = test_df.drop(columns=[target_column])
+    
     
     submission_df = pd.read_csv(os.path.join(data_path, "sample_submission.csv"))
     
