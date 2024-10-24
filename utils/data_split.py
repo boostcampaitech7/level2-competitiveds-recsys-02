@@ -26,12 +26,13 @@ def data_split(split_type, train_df, target_column):
         - 특정 기간(holdout_start ~ holdout_end)에 해당하는 데이터를 검증 세트로, 나머지를 학습 세트로 분할.
     """
     if split_type == "random":
+        X = train_df.drop(columns=[target_column])  
+        y = train_df[target_column]  
         x_train, x_valid, y_train, y_valid = train_test_split(
-            train_df, 
-            train_df[target_column], 
+            X, 
+            y, 
             test_size=0.2,
-            random_state=42,
-            stratify=train_df[target_column]
+            random_state=42
         )
     elif split_type == "time":
         holdout_start = 202307
