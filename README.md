@@ -42,7 +42,54 @@
 
 ## 📂Architecture
 ```
-
+📦level2-competitiveds-recsys-02
+ ┣ 📂dataloader
+ ┃ ┗ 📜dataloader.py
+ ┣ 📂dataset
+ ┃ ┗ 📜merge_data.py
+ ┣ 📂eda
+ ┃ ┣ 📜EDA_1016.ipynb
+ ┃ ┣ 📜kmeans_clustering.ipynb
+ ┃ ┣ 📜kmeans_plus.py
+ ┃ ┗ 📜time_series_analysis.ipynb
+ ┣ 📂experiments
+ ┃ ┣ 📜embedding_transformer_MLP.ipynb
+ ┃ ┣ 📜feature_selection.ipynb
+ ┃ ┣ 📜GNN_model.ipynb
+ ┃ ┣ 📜LSTM.py
+ ┃ ┣ 📜predict_deposit_mean.ipynb
+ ┃ ┣ 📜retrieval_model.ipynb
+ ┃ ┗ 📜retrieval_pred.ipynb
+ ┣ 📂models
+ ┃ ┣ 📂params
+ ┃ ┃ ┣ 📜catboost_param.yaml
+ ┃ ┃ ┣ 📜lgbm_param.yaml
+ ┃ ┃ ┣ 📜lr_param.yaml
+ ┃ ┃ ┣ 📜rf_param.yaml
+ ┃ ┃ ┗ 📜xgb_param.yaml
+ ┃ ┣ 📜catboost.py
+ ┃ ┣ 📜FT-transformer.py
+ ┃ ┣ 📜knn_for_ensemble.ipynb
+ ┃ ┣ 📜lgbm.py
+ ┃ ┣ 📜linear_regression.py
+ ┃ ┣ 📜MLP.py
+ ┃ ┣ 📜MLP_model.ipynb
+ ┃ ┣ 📜randomforest.py
+ ┃ ┣ 📜retrieval_model.py
+ ┃ ┣ 📜train_model.py
+ ┃ ┗ 📜xgb.py
+ ┣ 📂utils
+ ┃ ┣ 📜clustering.py
+ ┃ ┣ 📜data_split.py
+ ┃ ┣ 📜load_params.py
+ ┃ ┣ 📜mysql.py
+ ┃ ┣ 📜weighted_ensemble.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📜ensemble.ipynb
+ ┣ 📜hyperparameter_tuning.ipynb
+ ┣ 📜merge_data.ipynb
+ ┣ 📜trainer.ipynb
+ ┗ 📜weighted_ensemble.ipynb
             
 ```
 
