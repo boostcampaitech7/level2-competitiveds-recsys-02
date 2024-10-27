@@ -2,10 +2,11 @@
 
 ## 💡Team (사진)
 
-|강현구|서동준|이도걸|이수미|최윤혜|
+| 강현구 | 서동준 | 이도걸 | 이수미 | 최윤혜 |
 |:---:|:---:|:---:|:---:|:---:|
-|<img src="" width="150" height="150"/>|<img src="" width="150" height="150"/>|<img src="" width="150" height="150"/>|<img src="" width="150" height="150"/>|<img src="" width="150" height="150"/>|
-|각자 한 것|각자 한 것|각자 한 것|각자 한 것|각자 한 것|
+| <img src="https://github.com/user-attachments/assets/92253cc6-6b10-4245-a2c0-d2890cdad1b5" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/67d55bee-4817-4401-98aa-d276a00546ad" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/896c0009-4741-42c1-a8f5-ae66ba33397b" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/f649e5ee-c338-4883-aad0-9a77f3fe2381" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/b3de7f45-454e-4907-a618-c653f381a4d6" width="150" height="150"/> |
+| Data EDA, Hyperparameter tuning, KNN modeling, Ensemble | Data Merging, Feature Creation, FT-transformer, Retrieval Modeling, Hyperparameter tuning, Stacking | Code modularization, Mysql DB connection, LGBM/XGB/Catboost/RF modeling | Time series analysis, LSTM modeling, Feature selection work, Clustering, Data Merging, Ensemble | Deep learning modeling, MLP, GNN modeling, Added features to the dataset |
+
 
 </br>
 
