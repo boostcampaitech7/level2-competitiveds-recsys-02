@@ -24,7 +24,7 @@ class WeightedEnsemble:
         weights = value_by_day.div(value_by_day.sum(axis=1), axis=0).fillna(0)
 
         weights_expanded = weights.reindex(df['contract_year_month_day']).values
-        r_values_expanded = df[['r1', 'r2', 'r3', 'r4']].values
+        r_values_expanded = df[self.models].values
         df['final_prediction'] = np.einsum('ij,ij->i', r_values_expanded, weights_expanded)
 
         return df
@@ -38,15 +38,14 @@ class WeightedEnsemble:
         """
         plt.figure(figsize=(10, 6))
         for model in self.models:
-            plt.plot(val.index, val[model], label=model, marker='o')
+            plt.plot(val.index, val[model], label=model)
 
         if show_final_pred:
             plt.plot(val.index, val['final_prediction'], label='Final Prediction', linewidth=2, color='black')
 
         plt.title('Average of Model Predictions')
         plt.ylabel('Average Value')
-        plt.xticks(rotation=45)
+        plt.xticks(rotation=90)
         plt.legend()
-        plt.grid(True)
         plt.tight_layout()
         plt.show()
