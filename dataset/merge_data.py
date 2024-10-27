@@ -626,3 +626,18 @@ class MergeData:
     def save(self, path: str):
         self.merged_df.to_csv(path, index=False)
         print(f"Data saved to {path}")
+    
+        
+if __name__ == '__main__':
+    train_df = pd.read_csv('data/train.csv')
+    test_df = pd.read_csv('data/test.csv')
+    park_df = pd.read_csv('data/parkInfo.csv')
+    subway_df = pd.read_csv('data/subwayInfo.csv')
+    school_df = pd.read_csv('data/schoolinfo.csv')
+    interest_df = pd.read_csv('data/interestRate.csv')
+
+    merger = MergeData(train_df, test_df, park_df, subway_df, school_df, interest_df)
+
+    merged_df = merger.merge_all()
+
+    merged_df.to_csv('data/merged_data.csv', index=False)
