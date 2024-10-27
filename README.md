@@ -2,30 +2,10 @@
 
 ## 💡Team (사진)
 
-<table>
-  <tr>
-    <th style="width: 20%;">강현구</th>
-    <th style="width: 20%;">서동준</th>
-    <th style="width: 20%;">이도걸</th>
-    <th style="width: 20%;">이수미</th>
-    <th style="width: 20%;">최윤혜</th>
-  </tr>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/92253cc6-6b10-4245-a2c0-d2890cdad1b5" width="150" height="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/67d55bee-4817-4401-98aa-d276a00546ad" width="150" height="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/896c0009-4741-42c1-a8f5-ae66ba33397b" width="150" height="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/f649e5ee-c338-4883-aad0-9a77f3fe2381" width="150" height="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/b3de7f45-454e-4907-a618-c653f381a4d6" width="150" height="150"/></td>
-  </tr>
-  <tr>
-    <td>Data EDA, Hyperparameter tuning, KNN modeling, Ensemble</td>
-    <td>Data Merging, Feature Creation, FT-transformer, Retrieval Modeling, Hyperparameter tuning, Stacking</td>
-    <td>Code modularization, Mysql DB connection, LGBM/XGB/Catboost/RF modeling</td>
-    <td>Time series analysis, LSTM modeling, Feature selection work, Clustering, Data Merging, Ensemble</td>
-    <td>Deep learning modeling, MLP, GNN modeling, Added features to the dataset</td>
-  </tr>
-</table>
-
+| 강현구 | 서동준 | 이도걸 | 이수미 | 최윤혜 |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/92253cc6-6b10-4245-a2c0-d2890cdad1b5" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/67d55bee-4817-4401-98aa-d276a00546ad" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/896c0009-4741-42c1-a8f5-ae66ba33397b" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/f649e5ee-c338-4883-aad0-9a77f3fe2381" width="150" height="150"/> | <img src="https://github.com/user-attachments/assets/b3de7f45-454e-4907-a618-c653f381a4d6" width="150" height="150"/> |
+| Data EDA, <br>Hyperparameter <br>tuning, <br>KNN modeling, Ensemble | Data Merging, <br>Feature Creation, <br>FT-transformer, <br>Retrieval Modeling, <br>Hyperparameter tuning, <br>Stacking | Code modularization, <br>Mysql DB connection, <br>LGBM/XGB/Catboost/RF<br> modeling | Time series analysis, <br>LSTM modeling, <br>Feature selection work, <br>Clustering, <br>Data Merging, <br>Ensemble | Deep learning <br>modeling, <br>MLP, <br>GNN modeling, <br>Added features <br>to the dataset |
 
 
 </br>
