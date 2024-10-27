@@ -31,7 +31,17 @@
 </br>
 
 ## ⭐Project Summary
-
+- dataloader : 학습, 검증에 사용할 데이터 셋을 불러오는 함수가 포함되어 있습니다.
+- dataset : 데이터 셋에 새로운 Feature를 추가하는 다양한 함수들이 포함되어 있습니다.
+- eda : 데이터 EDA ipynb 파일이 포함되어 있습니다.
+- experiments : 최종 모델에 사용하지 않은 다양한 알고리즘이 포함되어 있습니다. 
+- models : 여러 모델 클래스와 파라미터를 포함하고 있으며, 각각은 공통된 구조를 따릅니다.
+- utils : 프로젝트 전반에 걸쳐 사용되는 다양한 유틸리티 함수들이 포함되어 있습니다.
+- ensemble.ipynb : 모델을 앙상블하는 코드입니다.
+- hyperparameter_tuning.ipynb : 모델의 파라미터를 튜닝하는 코드입니다.
+- merge_data.ipynb : 학습에 사용할 데이터를 만드는 코드입니다.
+- trainer.ipynb : 모델 학습에 사용하는 코드입니다.
+- weighted_ensemble.ipynb : 가중치를 기반으로 한 모델을 앙상블하는 코드입니다.
 
 </br>
 
