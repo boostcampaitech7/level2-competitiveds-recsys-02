@@ -46,7 +46,7 @@
 </br>
 
 ## 📑Wrap-up Report
-[RecSys_Level2_RecSys_팀 리포트(02조).pdf]()
+[RecSys_Level2_RecSys_팀 리포트(02조).pdf](https://github.com/boostcampaitech7/level2-competitiveds-recsys-02/blob/main/Competitive%20DS_RecSys_%ED%8C%80%20%EB%A6%AC%ED%8F%AC%ED%8A%B8(02%EC%A1%B0).pdf)
 
 
 </br>
