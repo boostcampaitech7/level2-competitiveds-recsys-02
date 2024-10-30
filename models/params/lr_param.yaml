@@ -1,0 +1,8 @@
+reg_params:
+  fit_intercept: true
+  copy_X: true
+  n_jobs: 2
+  positive: false
+
+cls_params:
+

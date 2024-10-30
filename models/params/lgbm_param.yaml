@@ -1,0 +1,26 @@
+cls_params:
+  boosting_type: gbdt
+  device: cpu
+  gpu_device_id: 0
+  gpu_platform_id: 0
+  learning_rate: 0.015732043600075817
+  metric: multi_logloss
+  n_estimators: 52
+  num_class: 4
+  num_leaves: 126
+  objective: multiclass
+  random_state: 42
+  verbose: 0
+reg_params:
+  device: gpu
+  gpu_platform_id: 0
+  gpu_device_id: 0
+  colsample_bytree: 0.9
+  metric: mae
+  learning_rate: 0.08
+  n_estimators: 500
+  num_leaves: 2000
+  max_depth: 15
+  min_child_samples: 5
+  min_child_weight: 1e-5
+  random_state: 42
