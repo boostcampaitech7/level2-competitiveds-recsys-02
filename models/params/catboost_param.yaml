@@ -1,0 +1,30 @@
+cls_params:
+  bagging_temperature: 1
+  cat_features: []
+  depth: 6
+  devices: '0'
+  eval_metric: AUC
+  iterations: 1000
+  l2_leaf_reg: 3
+  learning_rate: 0.1
+  loss_function: MultiClass
+  random_seed: 42
+  task_type: GPU
+  verbose: 100
+reg_params:
+  bagging_temperature: 0.1720150713038577
+  border_count: 254
+  depth: 9
+  devices: '0'
+  iterations: 381
+  l2_leaf_reg: 7.430030644141291
+  learning_rate: 0.19008068762837887
+  loss_function: RMSE
+  model_size_reg: 0.5
+  od_type: Iter
+  od_wait: 20
+  random_seed: 0
+  rsm: 1.0
+  task_type: GPU
+  thread_count: -1
+  verbose: true
