@@ -1,5 +1,13 @@
 # 수도권 아파트 전세가 예측 AI 대회
 
+
+## 💻Introduction
+아파트는 한국에서 중요한 자산이며, 가계 자산의 70% 이상을 차지합니다. 특히 전세 시장은 매매 시장과 밀접하게 연관되어 부동산 정책 수립과 시장 예측의 중요한 지표가 됩니다. 이번 대회의 목표는 단순한 가격 예측을 넘어, 부동산 시장의 정보 비대칭성을 해소하는 것입니다.
+
+대회의 성능 평가는 **Mean Absolute Error (MAE)** 지표로 진행되며, 리더보드와 최종 순위는 MAE를 기준으로 결정됩니다.
+
+</br>
+
 ## 💡Team (사진)
 
 | 강현구 | 서동준 | 이도걸 | 이수미 | 최윤혜 |
@@ -7,13 +15,6 @@
 | <img src="https://github.com/user-attachments/assets/92253cc6-6b10-4245-a2c0-d2890cdad1b5" style="width:150px; height:150px;"/> | <img src="https://github.com/user-attachments/assets/67d55bee-4817-4401-98aa-d276a00546ad" style="width:150px; height:150px;"/> | <img src="https://github.com/user-attachments/assets/896c0009-4741-42c1-a8f5-ae66ba33397b" style="width:150px; height:150px;"/> | <img src="https://github.com/user-attachments/assets/b3de7f45-454e-4907-a618-c653f381a4d6" style="width:150px; height:150px;"/> |<img src="https://github.com/user-attachments/assets/f649e5ee-c338-4883-aad0-9a77f3fe2381" style="width:150px; height:150px;"/> | 
 | Data EDA, <br>Hyperparameter <br>tuning, <br>KNN modeling, <br>Ensemble | Data Merging, <br>Feature Creation, <br>FT-transformer, <br>Retrieval Modeling, <br>Hyperparameter tuning, <br>Stacking | Modularization, <br>DB connection, <br>LGBM/XGB/<br>Catboost/RF<br> modeling | Data Merging, <br>Time series analysis, <br>LSTM modeling, <br>Feature selection, <br>Clustering, <br>Ensemble | Deep learning <br>modeling, <br>MLP, <br>GNN modeling, <br>Added features <br>to the dataset |
 
-
-</br>
-
-## 💻Introduction
-아파트는 한국에서 중요한 자산이며, 가계 자산의 70% 이상을 차지합니다. 특히 전세 시장은 매매 시장과 밀접하게 연관되어 부동산 정책 수립과 시장 예측의 중요한 지표가 됩니다. 이번 대회의 목표는 단순한 가격 예측을 넘어, 부동산 시장의 정보 비대칭성을 해소하는 것입니다.
-
-대회의 성능 평가는 **Mean Absolute Error (MAE)** 지표로 진행되며, 리더보드와 최종 순위는 MAE를 기준으로 결정됩니다.
 
 </br>
 
